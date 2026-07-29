@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -8,13 +9,16 @@ public class LoadingBarController : AController<LoadingBarModel>
 
     private readonly PokemonApi _api = new();
     private readonly PokemonDatabase _database = new();
+    private readonly PokemonDownloader _downloader = new();
     private PokemonCache _cache;
+    private MoveCache _moveCache;
 
     private void OnEnable()
     {
         if (_model == null) return;
 
         _cache ??= new PokemonCache();
+        _moveCache ??= new MoveCache();
 
         _model.SubmitStartLoading += HandleStartLoading;
         _model.SubmitStartLoading?.Invoke();
@@ -35,6 +39,7 @@ public class LoadingBarController : AController<LoadingBarModel>
     private async UniTaskVoid FetchDataAsync()
     {
         _cache ??= new PokemonCache();
+        _moveCache ??= new MoveCache();
         _model.SetProgress(0, 0);
 
         if (_cache.TryLoadManifest(_pokemonLimit, out PokemonCacheManifest manifest))
@@ -71,6 +76,8 @@ public class LoadingBarController : AController<LoadingBarModel>
             await UniTask.Yield();
         }
 
+        SetDefaultSelectedPokemon(pokemonDataList);
+        await LoadMovesAsync(pokemonDataList);
         _model.LoadingComplete?.Invoke();
     }
 
@@ -111,6 +118,84 @@ public class LoadingBarController : AController<LoadingBarModel>
         }
 
         _cache.SaveManifest(totalCount, list.results);
+        SetDefaultSelectedPokemon(pokemonDataList);
+        await LoadMovesAsync(pokemonDataList);
         _model.LoadingComplete?.Invoke();
+    }
+
+    private async UniTask LoadMovesAsync(PokemonDataList pokemonDataList)
+    {
+        MoveDataList moveDataList = GameManager.Instance.MoveDataList;
+        moveDataList.Clear();
+
+        if (_moveCache.TryLoad(out MoveCacheEntry[] cachedMoves))
+        {
+            for (int i = 0; i < cachedMoves.Length; i++)
+            {
+                MoveData move = _downloader.BuildMoveFromCache(cachedMoves[i]);
+                if (move != null)
+                    moveDataList.Add(move);
+            }
+
+            return;
+        }
+
+        HashSet<string> uniqueMoveNames = CollectUniqueMoveNames(pokemonDataList);
+        if (uniqueMoveNames.Count == 0)
+            return;
+
+        string[] moveNames = new string[uniqueMoveNames.Count];
+        uniqueMoveNames.CopyTo(moveNames);
+
+        int loadedPokemon = pokemonDataList.Count;
+        int total = loadedPokemon + moveNames.Length;
+        _model.SetProgress(loadedPokemon, total);
+
+        for (int i = 0; i < moveNames.Length; i++)
+        {
+            MoveDTO dto = await _api.GetMove(moveNames[i]);
+            if (dto != null)
+            {
+                MoveData move = _downloader.BuildMove(dto);
+                if (move != null)
+                    moveDataList.Add(move);
+            }
+
+            _model.SetProgress(loadedPokemon + i + 1, total);
+        }
+
+        _moveCache.Save(moveDataList);
+    }
+
+    private static HashSet<string> CollectUniqueMoveNames(PokemonDataList pokemonDataList)
+    {
+        HashSet<string> names = new HashSet<string>();
+        if (pokemonDataList == null)
+            return names;
+
+        IReadOnlyList<PokemonData> all = pokemonDataList.GetAll();
+        for (int i = 0; i < all.Count; i++)
+        {
+            PokemonData pokemon = all[i];
+            if (pokemon?.MoveNames == null)
+                continue;
+
+            for (int j = 0; j < pokemon.MoveNames.Length; j++)
+            {
+                string moveName = pokemon.MoveNames[j];
+                if (!string.IsNullOrEmpty(moveName))
+                    names.Add(moveName);
+            }
+        }
+
+        return names;
+    }
+
+    private static void SetDefaultSelectedPokemon(PokemonDataList pokemonDataList)
+    {
+        if (GameManager.Instance == null || pokemonDataList == null || pokemonDataList.Count == 0)
+            return;
+
+        GameManager.Instance.SetSelectedPokemonData(pokemonDataList.GetByIndex(0));
     }
 }

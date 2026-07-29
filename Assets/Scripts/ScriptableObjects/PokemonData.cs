@@ -2,8 +2,7 @@ using UnityEngine;
 
 [CreateAssetMenu(menuName = "Pokemon/Pokemon Data")]
 public class PokemonData : ScriptableObject
-{
-    [SerializeField] private int _id;
+{    [SerializeField] private int _id;
     [SerializeField] private string _pokemonName;
     [SerializeField] private Sprite _pokemonIcon;
     [SerializeField] private Sprite _frontSprite;
@@ -13,6 +12,7 @@ public class PokemonData : ScriptableObject
     [SerializeField] private float[] _frontAnimDelays;
     [SerializeField] private float[] _backAnimDelays;
     [SerializeField] private string[] _types;
+    [SerializeField] private string[] _moveNames;
     [SerializeField] private int _hp;
     [SerializeField] private int _attack;
     [SerializeField] private int _defense;
@@ -29,6 +29,7 @@ public class PokemonData : ScriptableObject
     public float[] FrontAnimDelays => _frontAnimDelays;
     public float[] BackAnimDelays => _backAnimDelays;
     public string[] Types => _types;
+    public string[] MoveNames => _moveNames;
     public int Hp => _hp;
     public int Attack => _attack;
     public int Defense => _defense;
@@ -45,6 +46,7 @@ public class PokemonData : ScriptableObject
         float[] frontAnimDelays,
         float[] backAnimDelays,
         string[] types,
+        string[] moveNames,
         int hp,
         int attack,
         int defense,
@@ -60,6 +62,7 @@ public class PokemonData : ScriptableObject
         _frontAnimDelays = frontAnimDelays;
         _backAnimDelays = backAnimDelays;
         _types = types;
+        _moveNames = moveNames;
         _hp = hp;
         _attack = attack;
         _defense = defense;

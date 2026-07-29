@@ -14,6 +14,7 @@ public class PokemonCacheEntry
     public int id;
     public string pokemonName;
     public string[] types;
+    public string[] moveNames;
     public int hp;
     public int attack;
     public int defense;

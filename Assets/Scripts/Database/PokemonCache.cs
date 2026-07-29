@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PokemonCache
 {
-    public const int CacheVersion = 2;
+    public const int CacheVersion = 4;
 
     private readonly string _rootPath;
     private readonly PokemonDownloader _downloader = new();
@@ -75,6 +75,7 @@ public class PokemonCache
             id = data.Id,
             pokemonName = data.PokemonName,
             types = data.Types,
+            moveNames = data.MoveNames,
             hp = data.Hp,
             attack = data.Attack,
             defense = data.Defense,

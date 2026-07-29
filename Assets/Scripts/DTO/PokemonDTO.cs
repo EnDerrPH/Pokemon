@@ -12,4 +12,6 @@ public class PokemonDTO
     public TypeSlotDTO[] types;
 
     public StatDTO[] stats;
+
+    public MoveSlotDTO[] moves;
 }

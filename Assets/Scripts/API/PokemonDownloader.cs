@@ -37,6 +37,8 @@ public class PokemonDownloader
         for (int i = 0; i < dto.types.Length; i++)
             types[i] = dto.types[i].type.name;
 
+        string[] moveNames = Gen1MoveHelper.ExtractMoveNames(dto);
+
         int hp = 0;
         int attack = 0;
         int defense = 0;
@@ -88,6 +90,7 @@ public class PokemonDownloader
             frontAnim?.Delays,
             backAnim?.Delays,
             types,
+            moveNames,
             hp,
             attack,
             defense,
@@ -128,10 +131,51 @@ public class PokemonDownloader
             frontAnim?.Delays ?? entry.frontAnimDelays,
             backAnim?.Delays ?? entry.backAnimDelays,
             entry.types,
+            entry.moveNames,
             entry.hp,
             entry.attack,
             entry.defense,
             entry.speed
+        );
+
+        return data;
+    }
+
+    public MoveData BuildMove(MoveDTO dto)
+    {
+        if (dto == null)
+            return null;
+
+        MoveData data = ScriptableObject.CreateInstance<MoveData>();
+        data.Initialize(
+            dto.id,
+            dto.name,
+            dto.power,
+            dto.pp,
+            dto.accuracy,
+            dto.priority,
+            dto.type != null ? dto.type.name : null,
+            dto.damage_class != null ? dto.damage_class.name : null
+        );
+
+        return data;
+    }
+
+    public MoveData BuildMoveFromCache(MoveCacheEntry entry)
+    {
+        if (entry == null)
+            return null;
+
+        MoveData data = ScriptableObject.CreateInstance<MoveData>();
+        data.Initialize(
+            entry.id,
+            entry.moveName,
+            entry.power,
+            entry.pp,
+            entry.accuracy,
+            entry.priority,
+            entry.type,
+            entry.damageClass
         );
 
         return data;
@@ -154,7 +198,7 @@ public class PokemonDownloader
         return Sprite.Create(
             texture,
             new Rect(0, 0, texture.width, texture.height),
-            Vector2.one * 0.5f
+            new Vector2(0.5f, 0f)
         );
     }
 

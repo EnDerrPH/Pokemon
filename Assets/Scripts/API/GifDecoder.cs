@@ -55,8 +55,14 @@ public static class GifDecoder
         List<float> delays = new List<float>();
 
         int transparentIndex = -1;
-        int disposalMethod = 0;
+        int frameDisposal = 0;
         float delaySeconds = 0.1f;
+
+        int previousDisposal = 0;
+        int previousLeft = 0;
+        int previousTop = 0;
+        int previousFrameWidth = 0;
+        int previousFrameHeight = 0;
 
         while (pos < data.Length)
         {
@@ -77,7 +83,7 @@ public static class GifDecoder
                     transparentIndex = data[pos++];
                     pos++; // block terminator
 
-                    disposalMethod = (gcePacked >> 2) & 0x07;
+                    frameDisposal = (gcePacked >> 2) & 0x07;
                     bool hasTransparency = (gcePacked & 0x01) != 0;
                     if (!hasTransparency)
                         transparentIndex = -1;
@@ -112,14 +118,24 @@ public static class GifDecoder
             if (colorTable == null)
                 return null;
 
-            if (disposalMethod == 3)
-                Array.Copy(canvas, previous, canvas.Length);
-
-            if (disposalMethod == 2)
+            if (previousDisposal == 2)
             {
-                for (int i = 0; i < canvas.Length; i++)
-                    canvas[i] = new Color32(0, 0, 0, 0);
+                ClearRect(
+                    canvas,
+                    width,
+                    height,
+                    previousLeft,
+                    previousTop,
+                    previousFrameWidth,
+                    previousFrameHeight);
             }
+            else if (previousDisposal == 3)
+            {
+                Array.Copy(previous, canvas, canvas.Length);
+            }
+
+            if (frameDisposal == 3)
+                Array.Copy(canvas, previous, canvas.Length);
 
             byte lzwMinCodeSize = data[pos++];
             byte[] compressed = ReadDataSubBlocks(data, ref pos);
@@ -146,12 +162,19 @@ public static class GifDecoder
             frames.Add(Sprite.Create(
                 texture,
                 new Rect(0, 0, width, height),
-                Vector2.one * 0.5f,
+                new Vector2(0.5f, 0f),
                 100f));
             delays.Add(delaySeconds);
 
-            if (disposalMethod == 3)
-                Array.Copy(previous, canvas, canvas.Length);
+            previousDisposal = frameDisposal;
+            previousLeft = left;
+            previousTop = top;
+            previousFrameWidth = frameWidth;
+            previousFrameHeight = frameHeight;
+
+            frameDisposal = 0;
+            transparentIndex = -1;
+            delaySeconds = 0.1f;
         }
 
         if (frames.Count == 0)
@@ -164,7 +187,33 @@ public static class GifDecoder
         };
     }
 
-private static void ApplyFrame(
+    private static void ClearRect(
+        Color32[] canvas,
+        int canvasWidth,
+        int canvasHeight,
+        int left,
+        int top,
+        int rectWidth,
+        int rectHeight)
+    {
+        for (int y = 0; y < rectHeight; y++)
+        {
+            int dstY = top + y;
+            if (dstY < 0 || dstY >= canvasHeight)
+                continue;
+
+            for (int x = 0; x < rectWidth; x++)
+            {
+                int dstX = left + x;
+                if (dstX < 0 || dstX >= canvasWidth)
+                    continue;
+
+                canvas[dstY * canvasWidth + dstX] = new Color32(0, 0, 0, 0);
+            }
+        }
+    }
+
+    private static void ApplyFrame(
         Color32[] canvas,
         byte[] indices,
         Color32[] colorTable,
