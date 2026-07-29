@@ -1,78 +1,59 @@
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
-public class PlayerEntity : MonoBehaviour
+public class PlayerEntity : Entity
 {
     [SerializeField] private PlayerAnimationHandler _animationHandler;
     [SerializeField] private PlayerPositionHandler _positionHandler;
 
-    private BattleModel _battleModel;
-
-    private void OnEnable()
+    protected override void OnBattleShown()
     {
-        BindBattleVisibility();
-
-        if (_battleModel != null && _battleModel.IsVisible)
-            PlaySelectedPokemonAnim();
+        PlaySelectedPokemonAnim();
     }
 
-    private void Start()
-    {
-        BindBattleVisibility();
-    }
-
-    private void OnDisable()
+    protected override void OnBattleHidden()
     {
         _animationHandler?.Stop();
         _positionHandler?.Reset();
-        UnbindBattleVisibility();
+
+        if (BattleManager.Instance != null)
+            BattleManager.Instance.SetPlayerData(null);
     }
 
-    private void BindBattleVisibility()
+    protected override void OnDisable()
     {
-        if (GlobalModelLocator.Instance == null)
-            return;
-
-        BattleModel battleModel = GlobalModelLocator.Instance.GetModel<BattleModel>();
-        if (battleModel == null || _battleModel == battleModel)
-            return;
-
-        UnbindBattleVisibility();
-
-        _battleModel = battleModel;
-        _battleModel.VisibilityUpdated += HandleBattleVisibilityUpdated;
-    }
-
-    private void UnbindBattleVisibility()
-    {
-        if (_battleModel == null)
-            return;
-
-        _battleModel.VisibilityUpdated -= HandleBattleVisibilityUpdated;
-        _battleModel = null;
-    }
-
-    private void HandleBattleVisibilityUpdated()
-    {
-        if (_battleModel == null)
-            return;
-
-        if (!_battleModel.IsVisible)
-        {
-            _animationHandler?.Stop();
-            _positionHandler?.Reset();
-            return;
-        }
-
-        PlaySelectedPokemonAnim();
+        _animationHandler?.Stop();
+        _positionHandler?.Reset();
+        base.OnDisable();
     }
 
     private void PlaySelectedPokemonAnim()
     {
-        if (GameManager.Instance == null || GameManager.Instance.SelectedPokemonData == null)
+        if (GameManager.Instance == null || BattleManager.Instance == null)
             return;
 
         PokemonData data = GameManager.Instance.SelectedPokemonData;
+        if (data == null)
+            return;
+
+        BattleManager.Instance.SetPlayerData(data);
         _positionHandler?.Apply(data);
         _animationHandler?.Play(data.BackAnimSprites, data.BackAnimDelays);
+    }
+
+    public UniTask PlayJumpFx(float jumpHeight, float duration)
+    {
+        if (_animationHandler == null)
+            return UniTask.CompletedTask;
+
+        return _animationHandler.PlayJumpFx(jumpHeight, duration);
+    }
+
+    public UniTask PlayShakeFx(float duration, float strength)
+    {
+        if (_animationHandler == null)
+            return UniTask.CompletedTask;
+
+        return _animationHandler.PlayShakeFx(duration, strength);
     }
 }

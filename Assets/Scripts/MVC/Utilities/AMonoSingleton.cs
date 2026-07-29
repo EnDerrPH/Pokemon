@@ -38,6 +38,7 @@ public abstract class AMonoSingleton<T> : MonoBehaviour where T : MonoBehaviour
 
         if (DontDestroyOnLoad)
         {
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
     }

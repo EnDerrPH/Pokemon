@@ -1,7 +1,9 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using Cysharp.Threading.Tasks;
 
-public class MoveButtonUI : MonoBehaviour
+public class MoveButtonUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("References")]
     [SerializeField] private TextMeshProUGUI _text;
@@ -29,5 +31,13 @@ public class MoveButtonUI : MonoBehaviour
             return;
 
         _text.SetText(text ?? string.Empty);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (_moveData == null || BattleFlowManager.Instance == null)
+            return;
+
+        BattleFlowManager.Instance.SubmitPlayerMove(_moveData).Forget();
     }
 }

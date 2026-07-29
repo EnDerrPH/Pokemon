@@ -1,71 +1,35 @@
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
-public class EnemyEntity : MonoBehaviour
+public class EnemyEntity : Entity
 {
     [SerializeField] private EnemyAnimationHandler _animationHandler;
 
-    private BattleModel _battleModel;
-
-    private void OnEnable()
+    protected override void OnBattleShown()
     {
-        BindBattleVisibility();
-
-        if (_battleModel != null && _battleModel.IsVisible)
-            PlayRandomEnemyAnim();
+        PlayRandomEnemyAnim();
     }
 
-    private void Start()
-    {
-        BindBattleVisibility();
-    }
-
-    private void OnDisable()
+    protected override void OnBattleHidden()
     {
         _animationHandler?.Stop();
-        UnbindBattleVisibility();
+
+        if (BattleManager.Instance != null)
+            BattleManager.Instance.SetEnemyData(null);
     }
 
-    private void BindBattleVisibility()
+    protected override void OnDisable()
     {
-        if (GlobalModelLocator.Instance == null)
-            return;
-
-        BattleModel battleModel = GlobalModelLocator.Instance.GetModel<BattleModel>();
-        if (battleModel == null || _battleModel == battleModel)
-            return;
-
-        UnbindBattleVisibility();
-
-        _battleModel = battleModel;
-        _battleModel.VisibilityUpdated += HandleBattleVisibilityUpdated;
-    }
-
-    private void UnbindBattleVisibility()
-    {
-        if (_battleModel == null)
-            return;
-
-        _battleModel.VisibilityUpdated -= HandleBattleVisibilityUpdated;
-        _battleModel = null;
-    }
-
-    private void HandleBattleVisibilityUpdated()
-    {
-        if (_battleModel == null)
-            return;
-
-        if (!_battleModel.IsVisible)
-        {
-            _animationHandler?.Stop();
-            return;
-        }
-
-        PlayRandomEnemyAnim();
+        _animationHandler?.Stop();
+        base.OnDisable();
     }
 
     private void PlayRandomEnemyAnim()
     {
-        if (GameManager.Instance == null || GameManager.Instance.PokemonDataList == null)
+        if (GameManager.Instance == null || BattleManager.Instance == null)
+            return;
+
+        if (GameManager.Instance.PokemonDataList == null)
             return;
 
         int count = GameManager.Instance.PokemonDataList.Count;
@@ -76,6 +40,23 @@ public class EnemyEntity : MonoBehaviour
         if (enemyData == null)
             return;
 
+        BattleManager.Instance.SetEnemyData(enemyData);
         _animationHandler?.Play(enemyData.FrontAnimSprites, enemyData.FrontAnimDelays);
+    }
+
+    public UniTask PlayJumpFx(float jumpHeight, float duration)
+    {
+        if (_animationHandler == null)
+            return UniTask.CompletedTask;
+
+        return _animationHandler.PlayJumpFx(jumpHeight, duration);
+    }
+
+    public UniTask PlayShakeFx(float duration, float strength)
+    {
+        if (_animationHandler == null)
+            return UniTask.CompletedTask;
+
+        return _animationHandler.PlayShakeFx(duration, strength);
     }
 }

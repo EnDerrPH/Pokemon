@@ -5,40 +5,40 @@ public class MovesController : AController<MovesModel>
 {
     private void OnEnable()
     {
-        BindSelectedPokemon();
+        BindPlayerData();
     }
 
     private void Start()
     {
-        BindSelectedPokemon();
+        BindPlayerData();
     }
 
     private void OnDisable()
     {
-        UnbindSelectedPokemon();
+        UnbindPlayerData();
     }
 
-    private void BindSelectedPokemon()
+    private void BindPlayerData()
     {
-        if (GameManager.Instance == null)
+        if (BattleManager.Instance == null)
             return;
 
-        GameManager.Instance.SelectedPokemonUpdated -= HandleSelectedPokemonUpdated;
-        GameManager.Instance.SelectedPokemonUpdated += HandleSelectedPokemonUpdated;
+        BattleManager.Instance.PlayerDataUpdated -= HandlePlayerDataUpdated;
+        BattleManager.Instance.PlayerDataUpdated += HandlePlayerDataUpdated;
 
-        if (GameManager.Instance.SelectedPokemonData != null)
+        if (BattleManager.Instance.PlayerData != null)
             RandomizeSelectedMoves();
     }
 
-    private void UnbindSelectedPokemon()
+    private void UnbindPlayerData()
     {
-        if (GameManager.Instance == null)
+        if (BattleManager.Instance == null)
             return;
 
-        GameManager.Instance.SelectedPokemonUpdated -= HandleSelectedPokemonUpdated;
+        BattleManager.Instance.PlayerDataUpdated -= HandlePlayerDataUpdated;
     }
 
-    private void HandleSelectedPokemonUpdated()
+    private void HandlePlayerDataUpdated()
     {
         RandomizeSelectedMoves();
     }
@@ -48,14 +48,14 @@ public class MovesController : AController<MovesModel>
         if (_model == null)
             return;
 
-        if (GameManager.Instance == null || GameManager.Instance.SelectedPokemonData == null)
+        if (BattleManager.Instance == null || BattleManager.Instance.PlayerData == null)
         {
             _model.ClearMoves();
             return;
         }
 
-        PokemonData pokemon = GameManager.Instance.SelectedPokemonData;
-        MoveDataList moveDataList = GameManager.Instance.MoveDataList;
+        PokemonData pokemon = BattleManager.Instance.PlayerData;
+        MoveDataList moveDataList = GameManager.Instance != null ? GameManager.Instance.MoveDataList : null;
         if (pokemon.MoveNames == null || pokemon.MoveNames.Length == 0 || moveDataList == null)
         {
             _model.ClearMoves();

@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class StartButtonUI : AView<LoadingBarModel>
 {
@@ -43,6 +46,9 @@ public class StartButtonUI : AView<LoadingBarModel>
 
     private void HandleClicked()
     {
+#if UNITY_EDITOR
+        Selection.activeObject = null;
+#endif
         SceneManager.LoadScene(_gameSceneName);
     }
 }

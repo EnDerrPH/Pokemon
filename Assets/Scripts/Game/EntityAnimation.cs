@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 
 public abstract class EntityAnimation : MonoBehaviour
 {
@@ -9,8 +10,11 @@ public abstract class EntityAnimation : MonoBehaviour
     [SerializeField] private SpriteRenderer _spriteRenderer;
 
     private CancellationTokenSource _animCts;
+    private Tween _fxTween;
 
     public SpriteRenderer SpriteRenderer => _spriteRenderer;
+
+    private Transform FxTarget => _spriteRenderer != null ? _spriteRenderer.transform : transform;
 
     public void Play(Sprite[] frames, float[] delays)
     {
@@ -33,6 +37,73 @@ public abstract class EntityAnimation : MonoBehaviour
         _animCts.Cancel();
         _animCts.Dispose();
         _animCts = null;
+    }
+
+    public UniTask PlayJumpFx(float jumpHeight, float duration)
+    {
+        Transform target = FxTarget;
+        if (target == null)
+            return UniTask.CompletedTask;
+
+        _fxTween?.Kill();
+
+        float halfDuration = Mathf.Max(0.01f, duration * 0.5f);
+        float baseY = target.localPosition.y;
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(target.DOLocalMoveY(baseY + jumpHeight, halfDuration));
+        sequence.Append(target.DOLocalMoveY(baseY, halfDuration));
+        _fxTween = sequence;
+
+        return WaitForTween(sequence);
+    }
+
+    public UniTask PlayShakeFx(float duration, float strength)
+    {
+        Transform target = FxTarget;
+        if (target == null)
+            return UniTask.CompletedTask;
+
+        _fxTween?.Kill();
+
+        Tween shakeTween = target.DOShakePosition(
+            duration,
+            new Vector3(strength, strength, 0f),
+            20,
+            90f,
+            false,
+            true);
+
+        _fxTween = shakeTween;
+        return WaitForTween(shakeTween);
+    }
+
+    private static UniTask WaitForTween(Tween tween)
+    {
+        if (tween == null)
+            return UniTask.CompletedTask;
+
+        UniTaskCompletionSource completion = new UniTaskCompletionSource();
+        bool finished = false;
+
+        tween.OnComplete(() =>
+        {
+            if (finished)
+                return;
+
+            finished = true;
+            completion.TrySetResult();
+        });
+
+        tween.OnKill(() =>
+        {
+            if (finished)
+                return;
+
+            finished = true;
+            completion.TrySetResult();
+        });
+
+        return completion.Task;
     }
 
     protected void SetSprite(Sprite sprite)
@@ -75,5 +146,7 @@ public abstract class EntityAnimation : MonoBehaviour
     protected virtual void OnDestroy()
     {
         Stop();
+        _fxTween?.Kill();
+        _fxTween = null;
     }
 }
