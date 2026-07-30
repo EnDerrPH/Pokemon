@@ -27,8 +27,17 @@ public class HealthModel : AModel
         SetHealth(hp, hp);
     }
 
+    public void ApplyDamage(float damage)
+    {
+        if (damage <= 0f)
+            return;
+
+        SetHealth(CurrentHp - damage, MaxHp);
+    }
+
     public void Clear()
     {
         SetHealth(0f, 0f);
     }
 }
+

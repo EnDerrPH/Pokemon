@@ -30,8 +30,18 @@ public class BattleFlowManager : AMonoSingleton<BattleFlowManager>
         for (int i = 0; i < actions.Count; i++)
         {
             TurnAction action = actions[i];
+            bool dealsDamage = GetDamage(action) > 0;
+
             if (BattleAnimationManager.Instance != null)
-                await BattleAnimationManager.Instance.PlayAttackPresentation(action.AttackerSide, action.DefenderSide);
+                await BattleAnimationManager.Instance.PlayAttackPresentation(action.AttackerSide, action.DefenderSide, dealsDamage);
+
+            ApplyDamage(action);
+
+            if (IsFainted(action.DefenderSide))
+            {
+                BattleManager.Instance.SetPhase(BattlePhase.BattleOver);
+                return;
+            }
 
             if (_betweenActionsDelay > 0f && i < actions.Count - 1)
                 await UniTask.Delay(TimeSpan.FromSeconds(_betweenActionsDelay));
@@ -44,6 +54,48 @@ public class BattleFlowManager : AMonoSingleton<BattleFlowManager>
         }
 
         BattleManager.Instance.SetPhase(BattlePhase.WaitingForInput);
+    }
+
+    private static void ApplyDamage(TurnAction action)
+    {
+        int damage = GetDamage(action);
+        if (damage <= 0)
+            return;
+
+        HealthModel healthModel = GetHealthModel(action.DefenderSide);
+        healthModel?.ApplyDamage(damage);
+    }
+
+    private static int GetDamage(TurnAction action)
+    {
+        PokemonData attacker = GetSideData(action.AttackerSide);
+        PokemonData defender = GetSideData(action.DefenderSide);
+        return DamageCalculator.Calculate(attacker, defender, action.Move);
+    }
+
+    private static bool IsFainted(BattleSide side)
+    {
+        HealthModel healthModel = GetHealthModel(side);
+        return healthModel != null && healthModel.CurrentHp <= 0f;
+    }
+
+    private static PokemonData GetSideData(BattleSide side)
+    {
+        if (BattleManager.Instance == null)
+            return null;
+
+        return side == BattleSide.Player
+            ? BattleManager.Instance.PlayerData
+            : BattleManager.Instance.EnemyData;
+    }
+
+    private static HealthModel GetHealthModel(BattleSide side)
+    {
+        if (GlobalModelLocator.Instance == null)
+            return null;
+
+        string modelId = side == BattleSide.Player ? "player" : "enemy";
+        return GlobalModelLocator.Instance.GetModel<HealthModel>(modelId);
     }
 
     private static MoveData PickRandomEnemyMove(PokemonData enemyData)

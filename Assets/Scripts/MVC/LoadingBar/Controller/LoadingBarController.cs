@@ -40,7 +40,7 @@ public class LoadingBarController : AController<LoadingBarModel>
     {
         _cache ??= new PokemonCache();
         _moveCache ??= new MoveCache();
-        _model.SetProgress(0, 0);
+        _model.SetProgress(0, 0, LoadingFetchPhase.None);
 
         if (_cache.TryLoadManifest(_pokemonLimit, out PokemonCacheManifest manifest))
         {
@@ -54,7 +54,7 @@ public class LoadingBarController : AController<LoadingBarModel>
     private async UniTask LoadFromCacheAsync(PokemonCacheManifest manifest)
     {
         int totalCount = manifest.expectedCount;
-        _model.SetProgress(0, totalCount);
+        _model.SetProgress(0, totalCount, LoadingFetchPhase.Pokemon);
 
         PokemonDataList pokemonDataList = GameManager.Instance.PokemonDataList;
         pokemonDataList.Clear();
@@ -72,7 +72,7 @@ public class LoadingBarController : AController<LoadingBarModel>
             if (data != null)
                 pokemonDataList.Add(data);
 
-            _model.SetProgress(i + 1, totalCount);
+            _model.SetProgress(i + 1, totalCount, LoadingFetchPhase.Pokemon);
             await UniTask.Yield();
         }
 
@@ -91,7 +91,7 @@ public class LoadingBarController : AController<LoadingBarModel>
         }
 
         int totalCount = list.results.Length;
-        _model.SetProgress(0, totalCount);
+        _model.SetProgress(0, totalCount, LoadingFetchPhase.Pokemon);
 
         PokemonDataList pokemonDataList = GameManager.Instance.PokemonDataList;
         pokemonDataList.Clear();
@@ -114,7 +114,7 @@ public class LoadingBarController : AController<LoadingBarModel>
                 _cache.SavePokemon(result);
             }
 
-            _model.SetProgress(i + 1, totalCount);
+            _model.SetProgress(i + 1, totalCount, LoadingFetchPhase.Pokemon);
         }
 
         _cache.SaveManifest(totalCount, list.results);
@@ -128,8 +128,12 @@ public class LoadingBarController : AController<LoadingBarModel>
         MoveDataList moveDataList = GameManager.Instance.MoveDataList;
         moveDataList.Clear();
 
+        int loadedPokemon = pokemonDataList != null ? pokemonDataList.Count : 0;
+
         if (_moveCache.TryLoad(out MoveCacheEntry[] cachedMoves))
         {
+            _model.SetProgress(loadedPokemon, loadedPokemon, LoadingFetchPhase.Moves);
+
             for (int i = 0; i < cachedMoves.Length; i++)
             {
                 MoveData move = _downloader.BuildMoveFromCache(cachedMoves[i]);
@@ -147,9 +151,8 @@ public class LoadingBarController : AController<LoadingBarModel>
         string[] moveNames = new string[uniqueMoveNames.Count];
         uniqueMoveNames.CopyTo(moveNames);
 
-        int loadedPokemon = pokemonDataList.Count;
         int total = loadedPokemon + moveNames.Length;
-        _model.SetProgress(loadedPokemon, total);
+        _model.SetProgress(loadedPokemon, total, LoadingFetchPhase.Moves);
 
         for (int i = 0; i < moveNames.Length; i++)
         {
@@ -161,7 +164,7 @@ public class LoadingBarController : AController<LoadingBarModel>
                     moveDataList.Add(move);
             }
 
-            _model.SetProgress(loadedPokemon + i + 1, total);
+            _model.SetProgress(loadedPokemon + i + 1, total, LoadingFetchPhase.Moves);
         }
 
         _moveCache.Save(moveDataList);

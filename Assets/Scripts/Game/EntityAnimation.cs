@@ -57,6 +57,35 @@ public abstract class EntityAnimation : MonoBehaviour
         return WaitForTween(sequence);
     }
 
+    public UniTask PlayPunchScaleFx(Vector3 punchScale, float duration, int vibrato, float elasticity)
+    {
+        Transform target = FxTarget;
+        if (target == null)
+            return UniTask.CompletedTask;
+
+        _fxTween?.Kill();
+
+        Vector3 baseScale = target.localScale;
+        target.localScale = baseScale;
+
+        Sequence sequence = DOTween.Sequence();
+        sequence.Append(target.DOPunchScale(punchScale, duration, vibrato, elasticity));
+        sequence.Append(target.DOPunchScale(punchScale, duration, vibrato, elasticity));
+        sequence.OnKill(() =>
+        {
+            if (target != null)
+                target.localScale = baseScale;
+        });
+        sequence.OnComplete(() =>
+        {
+            if (target != null)
+                target.localScale = baseScale;
+        });
+
+        _fxTween = sequence;
+        return WaitForTween(sequence);
+    }
+
     public UniTask PlayShakeFx(float duration, float strength)
     {
         Transform target = FxTarget;

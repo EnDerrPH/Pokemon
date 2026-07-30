@@ -52,6 +52,14 @@ public class EnemyEntity : Entity
         return _animationHandler.PlayJumpFx(jumpHeight, duration);
     }
 
+    public UniTask PlayPunchScaleFx(Vector3 punchScale, float duration, int vibrato, float elasticity)
+    {
+        if (_animationHandler == null)
+            return UniTask.CompletedTask;
+
+        return _animationHandler.PlayPunchScaleFx(punchScale, duration, vibrato, elasticity);
+    }
+
     public UniTask PlayShakeFx(float duration, float strength)
     {
         if (_animationHandler == null)

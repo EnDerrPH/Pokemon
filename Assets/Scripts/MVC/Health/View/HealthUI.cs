@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +8,7 @@ public abstract class HealthUI : AView<HealthModel>
     [SerializeField] private float _currentHP;
     [SerializeField] private float _maxHP;
     [SerializeField] private Image _healthBar;
+    [SerializeField] private TextMeshProUGUI _hpPercentText;
 
     public float CurrentHP => _currentHP;
     public float MaxHP => _maxHP;
@@ -40,8 +42,16 @@ public abstract class HealthUI : AView<HealthModel>
         _currentHP = _model.CurrentHp;
         _maxHP = _model.MaxHp;
 
+        float ratio = _maxHP > 0f ? _currentHP / _maxHP : 0f;
+
         if (_healthBar != null)
-            _healthBar.fillAmount = _maxHP > 0f ? _currentHP / _maxHP : 0f;
+            _healthBar.fillAmount = ratio;
+
+        if (_hpPercentText != null)
+        {
+            int percent = Mathf.RoundToInt(ratio * 100f);
+            _hpPercentText.SetText($"{percent}%");
+        }
 
         OnHealthUpdated();
     }

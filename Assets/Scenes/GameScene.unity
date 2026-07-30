@@ -389,6 +389,7 @@ MonoBehaviour:
   _currentHP: 0
   _maxHP: 0
   _healthBar: {fileID: 4947312800690593868}
+  _hpPercentText: {fileID: 4947312800690593869}
 --- !u!1 &134309613
 GameObject:
   m_ObjectHideFlags: 0
@@ -3398,6 +3399,7 @@ MonoBehaviour:
   _currentHP: 0
   _maxHP: 0
   _healthBar: {fileID: 1541408934}
+  _hpPercentText: {fileID: 0}
 --- !u!114 &1541408934 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6362132675868855960, guid: 5d08bcbf835434749b1cbf95682a19a1, type: 3}
@@ -3409,6 +3411,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &1541408935 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4089907878807715289, guid: 5d08bcbf835434749b1cbf95682a19a1, type: 3}
+  m_PrefabInstance: {fileID: 1541408930}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1 &1575826252
 GameObject:
   m_ObjectHideFlags: 0
@@ -3713,6 +3726,7 @@ MonoBehaviour:
   _currentHP: 0
   _maxHP: 0
   _healthBar: {fileID: 1541408934}
+  _hpPercentText: {fileID: 1541408935}
 --- !u!1001 &1659940366
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4709,6 +4723,7 @@ MonoBehaviour:
   _currentHP: 0
   _maxHP: 0
   _healthBar: {fileID: 4947312800690593868}
+  _hpPercentText: {fileID: 0}
 --- !u!114 &4947312800690593868 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6362132675868855960, guid: 5d08bcbf835434749b1cbf95682a19a1, type: 3}
@@ -4720,6 +4735,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!114 &4947312800690593869 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4089907878807715289, guid: 5d08bcbf835434749b1cbf95682a19a1, type: 3}
+  m_PrefabInstance: {fileID: 4947312800690593865}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &7424807658187752188
 PrefabInstance:
   m_ObjectHideFlags: 0
