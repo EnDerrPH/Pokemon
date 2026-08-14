@@ -40,18 +40,8 @@ public class FetchedDataTextUI : AView<LoadingBarModel>
     {
         if (_fetchedDataText == null) return;
 
-        float progress = _model.TotalCount <= 0
-            ? 0f
-            : (float)_model.LoadedCount / _model.TotalCount;
-
-        int percent = Mathf.RoundToInt(progress * 100f);
         string label = GetPhaseLabel(_model.FetchPhase);
-
-        string text = string.IsNullOrEmpty(label)
-            ? $"{percent}%"
-            : $"{label} {percent}%";
-
-        _fetchedDataText.SetText(text.ToLowerInvariant());
+        _fetchedDataText.SetText(label.ToLowerInvariant());
     }
 
     private void HandleLoadingComplete()
@@ -78,9 +68,9 @@ public class FetchedDataTextUI : AView<LoadingBarModel>
         switch (phase)
         {
             case LoadingFetchPhase.Pokemon:
-                return "fetching pokemon datas";
+                return "fetching pokemon data";
             case LoadingFetchPhase.Moves:
-                return "fetching move datas";
+                return "fetching move data";
             default:
                 return string.Empty;
         }
